@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Cricket Live Matches</title>
+    </head>
+    <body>
+        <script src = "/socket.io/socket.io.js"></script>
+        <script>
+            const socket = io();
+            socket.on('sendToClient', (data) => {
+                console.log(data);
+                socket.emit('receivedFromClient', {my: 'data'});
+            });
+            const client = new XMLHttpRequest();
+            client.open('GET', 'http://localhost:8080/matches.txt');
+            client.onload = function() {
+                const arrayJSONs = JSON.parse(client.responseText);
+                // document.body.innerText = client.responseText;
+                let listMatchInfo = '';
+                for (var match of arrayJSONs) {
+                    if (match.status) {
+                        const matchType = match.type;
+                        const matchSeries = match.series;
+                        const matchStatus = match.status;
+                        const matchVenue = match.venue.name;
+                        const matchLocation = match.venue.location;
+                        const matchRunRate = match.score.runRate;
+                        const matchTarget = match.score.target;
+                        const matchTeamsPlaying = Object.keys(match.teams);
+                        const matchFirstTeam = match.teams[matchTeamsPlaying[0]].name;
+                        const matchSecondTeam = match.teams[matchTeamsPlaying[1]].name;
+                        const matchBatsmen = match.score.batsmen;
+                        const matchBowlers = match.score.bowlers;
+                        const matchBattingTeam = match.score.detail.batting.name;
+                        const matchBattingScore = match.score.detail.batting.score;
+                        const matchBattingWickets = match.score.detail.batting.wickets;
+                        const matchBattingOvers = match.score.detail.batting.overs;
+                        const matchBowlingTeam = matchBattingTeam === matchFirstTeam ? matchSecondTeam : matchFirstTeam;
+                        const matchCurrentInnings = match.score.detail.currentInnings;
+                        const matchPrevOvers = match.score.prevOvers;
+                        listMatchInfo += 'Team Batting: ' + matchBattingTeam + '\n' + 'Team Bowling: ' + matchBowlingTeam + '\n' + 'Match Status: ' + matchStatus + '\n' + 'Match Type: '+ matchType + '\n' + 'Match Venue: ' + matchVenue + '\n' + 'Match Location: ' + matchLocation + '\n';
+                        listMatchInfo += 'Current Innings: ' + matchCurrentInnings + '\n' + 'Current Score: ' + matchBattingScore + '/' + matchBattingWickets + ' in ' + matchBattingOvers + ' overs' + '\n' + 'Previous Overs: ' + matchPrevOvers + '\n';
+                        if (matchSeries) {
+                            listMatchInfo += 'Series: ' + matchSeries + '\n';
+                        }
+                        if (matchRunRate) {
+                            listMatchInfo += 'Run Rate: ' + matchRunRate + '\n';
+                        }
+                        let value = 0;
+                        if (matchSecondTeam === matchBowlingTeam) {
+                            value = 1;
+                        }
+                        if (match.teams[matchTeamsPlaying[value]].score) {
+                            listMatchInfo += 'Score in Previous Innings by ' + matchBowlingTeam + ': ' + match.teams[matchTeamsPlaying[value]].score + '/' + match.teams[matchTeamsPlaying[value]].wickets + ' in ' + match.teams[matchTeamsPlaying[value]].overs + ' overs' + '\n';
+                        }
+                        if (matchTarget) {
+                            listMatchInfo += 'Target: ' + matchTarget + ' runs' + '\n';
+                        }
+                        if (matchBatsmen) {
+                            listMatchInfo += 'Current Batsmen: ' + '\n';
+                            for (var batsman of matchBatsmen) {
+                                listMatchInfo += batsman.name + ': Runs - ' + batsman.r + ', Balls - ' + batsman.b + ', Fours - ' + batsman['4s'] + ', Sixes - ' + batsman['6s'] + '\n';
+                            }
+                        }
+                        if (matchBowlers) {
+                            listMatchInfo += 'Current Bowlers: ' + '\n';
+                            for (var bowler of matchBowlers) {
+                               listMatchInfo += bowler.name + ': Overs - ' + bowler.o + ', Maidens - ' + bowler.m + ', Runs Conceded - ' + bowler.r + ', Wickets - ' + bowler.w + '\n';
+                            }
+                        }
+                        let count = 5;
+                        listMatchInfo += '\n';
+                    }
+                }
+                document.body.innerText = listMatchInfo;
+            }
+            client.send();
+        </script>
+    </body>
+</html>
