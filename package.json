@@ -8,6 +8,7 @@
     "download": "^7.1.0",
     "express": "^4.17.1",
     "http": "^0.0.0",
+    "minimist": "^1.2.5",
     "node-localstorage": "^2.1.5",
     "nodemon": "^2.0.2",
     "request": "^2.88.0",
